@@ -6,3 +6,7 @@ target/
 .settings/
 .vscode/
 .env
+<<<<<<< HEAD
+src/main/java/ma/teleexpertise/config/TestDatabase.java
+=======
+>>>>>>> c47f6f3d3ca3fcb6c8972248e654c18fcf5762e2

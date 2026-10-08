@@ -3,7 +3,11 @@ package ma.clinique.teleexpertise.enums;
 public enum Specialite {
     CARDIOLOGIE,
     DERMATOLOGIE,
+    GASTROENTEROLOGIE,
     NEUROLOGIE,
+    ONCOLOGIE,
     PEDIATRIE,
-    RADIOLOGIE
+    PSYCHIATRIE,
+    RADIOLOGIE,
+    UROLOGIE
 }

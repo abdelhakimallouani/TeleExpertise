@@ -31,11 +31,7 @@ public class SpecialisteRepository {
                 .getResultList();
     }
 
-    public Specialiste save(Specialiste specialiste) {
-        if (specialiste.getId() == null) {
-            entityManager.persist(specialiste);
-            return specialiste;
-        }
-        return entityManager.merge(specialiste);
+    public void save(Specialiste specialiste) {
+        entityManager.persist(specialiste);
     }
 }
