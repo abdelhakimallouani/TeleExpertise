@@ -25,7 +25,7 @@
                 value="root" />
 
             <property name="jakarta.persistence.jdbc.password"
-                value="20032014" />
+                value="" />
 
             <property name="hibernate.dialect"
                 value="org.hibernate.dialect.MySQLDialect" />
