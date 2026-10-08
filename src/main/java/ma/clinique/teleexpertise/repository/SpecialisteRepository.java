@@ -18,18 +18,14 @@ public class SpecialisteRepository {
 
     public List<Specialiste> findAll() {
         return entityManager.createQuery(
-                "SELECT s FROM Specialiste s JOIN FETCH s.utilisateur"  ,
+                "SELECT s FROM Specialiste s"  ,
                 Specialiste.class).getResultList();
     }
-
-//     public List<Specialiste> findBySpecialite(Specialite specialite) {
-//         return entityManager.createQuery(
-//                 "SELECT s FROM Specialiste s JOIN FETCH s.utilisateur "
-//                         + "WHERE s.specialite = :specialite ORDER BY s.id",
-//                 Specialiste.class)
-//                 .setParameter("specialite", specialite)
-//                 .getResultList();
-//     }
+    // public List<Specialiste> findAll() {
+    //     return entityManager.createQuery(
+    //             "SELECT s FROM Specialiste s JOIN FETCH s.utilisateur"  ,
+    //             Specialiste.class).getResultList();
+    // }
 
     public void save(Specialiste specialiste) {
         entityManager.persist(specialiste);
