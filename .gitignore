@@ -1,0 +1,9 @@
+target/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+.env
+src/main/java/ma/teleexpertise/config/TestDatabase.java
