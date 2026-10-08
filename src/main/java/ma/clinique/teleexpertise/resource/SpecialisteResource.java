@@ -29,20 +29,29 @@ public class SpecialisteResource {
     // @GET
     // @Produces(MediaType.APPLICATION_JSON)
     // public List<Specialiste> allSpecialists() {
-    //     try {
-    //         return specialisteService.listSpecialistes();
-    //     } finally {
-    //         em.close();
-    //     }
+    // try {
+    // return specialisteService.listSpecialistes();
+    // } finally {
+    // em.close();
+    // }
 
     // }
 
     @GET
     public Response triSpecialistes(@QueryParam("specialite") String specialite) {
+        if (specialite == null || specialite.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("le specialite est obligatoire")
+                    .build();
+        }
         try {
             Specialite specialiteEnum = Specialite.valueOf(specialite.toUpperCase());
             List<Specialiste> specialistes = specialisteService.findBySpecialite(specialiteEnum);
             return Response.ok(specialistes).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("specialite inconnue  " + specialite)
+                    .build();
         } finally {
             em.close();
         }
