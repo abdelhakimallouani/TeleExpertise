@@ -1,6 +1,7 @@
 package ma.clinique.teleexpertise.service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -82,5 +83,17 @@ public class UtilisateurService {
         }
     }
 
-    
+    public Optional<Utilisateur> authentief(String email, String password){
+        Optional<Utilisateur> utilisateur = utilisateurRepository.findByEmail(email);
+
+        if (utilisateur.isEmpty()) {
+            return Optional.empty();
+        }
+        Utilisateur user = utilisateur.get();
+
+        boolean passwordValid = BCrypt.checkpw(password, user.getMotDePasse());
+        return passwordValid ? Optional.of(user) : Optional.empty();
+    }
+
+
 }
