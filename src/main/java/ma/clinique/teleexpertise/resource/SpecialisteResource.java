@@ -1,6 +1,7 @@
 package ma.clinique.teleexpertise.resource;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.annotations.QueryCacheLayout;
 
@@ -40,8 +41,9 @@ public class SpecialisteResource {
     @GET
     public Response triSpecialistes(@QueryParam("specialite") String specialite) {
         if (specialite == null || specialite.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("le specialite est obligatoire")
+            return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .entity(Map.of("error", "la specialite est obligatoire",
+                            "status", Response.Status.BAD_REQUEST.getStatusCode()))
                     .build();
         }
         try {
@@ -49,8 +51,9 @@ public class SpecialisteResource {
             List<Specialiste> specialistes = specialisteService.findBySpecialite(specialiteEnum);
             return Response.ok(specialistes).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("specialite inconnue  " + specialite)
+            return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
+                    .entity(Map.of("error", "specialite inconnue  " + specialite,
+                            "status", Response.Status.BAD_REQUEST.getStatusCode()))
                     .build();
         } finally {
             em.close();
