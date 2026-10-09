@@ -10,7 +10,6 @@
 
         <class>ma.clinique.teleexpertise.entity.Utilisateur</class>
         <class>ma.clinique.teleexpertise.entity.Specialiste</class>
-        <class>ma.clinique.teleexpertise.entity.Consultation</class>
         <class>ma.clinique.teleexpertise.entity.DemandeExpertise</class>
 
         <properties>
@@ -25,7 +24,7 @@
                 value="root" />
 
             <property name="jakarta.persistence.jdbc.password"
-                value="20032014" />
+                value="" />
 
             <property name="hibernate.dialect"
                 value="org.hibernate.dialect.MySQLDialect" />
