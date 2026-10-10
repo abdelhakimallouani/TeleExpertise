@@ -67,4 +67,20 @@ public class DemandeExpertiseService {
                 .toList();
     }
 
+    public List<DemandeResponse> findByConsultation(Long consultationId) {
+        if (consultationId == null) {
+            throw new IllegalArgumentException("consultationId doit etre un entier positif");
+
+        }
+        List<DemandeExpertise> demandes = demandeExpertiseRepository.findByConsultation(consultationId);
+        return demandes.stream().map(d -> new DemandeResponse(
+                d.getId(),
+                d.getPriorite(),
+                d.getStatut(),
+                d.getQuestion(),
+                d.getSpecialiste().getId(),
+                d.getConsultationId()))
+                .toList();
+    }
+
 }

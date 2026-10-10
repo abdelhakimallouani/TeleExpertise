@@ -1,6 +1,7 @@
 package ma.clinique.teleexpertise.resource;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +20,7 @@ import ma.clinique.teleexpertise.entity.DemandeExpertise;
 import ma.clinique.teleexpertise.repository.DemandeExpertiseRepository;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
 import ma.clinique.teleexpertise.service.DemandeExpertiseService;
+import jakarta.ws.rs.NotFoundException;
 
 @Path("/demandes")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -42,7 +44,7 @@ public class DemandeExpertiseResource {
                     "SELECT COUNT(*) FROM consultation WHERE id = :id")
                     .setParameter("id", req.consultationId()).getSingleResult();
             if (count.longValue() == 0) {
-                throw new jakarta.ws.rs.NotFoundException("Consultation introuvable");
+                throw new NotFoundException("Consultation introuvable");
             }
             DemandeExpertiseService demandeExpertiseService = new DemandeExpertiseService(
                     new DemandeExpertiseRepository(em), new SpecialisteRepository(em));
@@ -50,7 +52,7 @@ public class DemandeExpertiseResource {
                     req.consultationId(), req.question());
             em.getTransaction().commit();
             return Response.status(Response.Status.CREATED)
-                    .entity(java.util.Map.of("id", demande.getId(), "statut", demande.getStatut().name()))
+                    .entity(Map.of("id", demande.getId(), "statut", demande.getStatut().name()))
                     .build();
         } catch (RuntimeException e) {
             if (em.getTransaction().isActive()) {
@@ -64,15 +66,43 @@ public class DemandeExpertiseResource {
     }
 
     @GET
-    public Response getMesDemandes(@QueryParam("statut") String statut) {
+    public Response getMesDemandes(@QueryParam("statut") String statut,
+            @QueryParam("consultationId") Long consultationId) {
         EntityManager em = JPAUtil.getEntityManager();
         DemandeExpertiseRepository repositoryDemande = new DemandeExpertiseRepository(em);
         SpecialisteRepository repositorySpecialiste = new SpecialisteRepository(em);
         DemandeExpertiseService service = new DemandeExpertiseService(repositoryDemande, repositorySpecialiste);
 
+        if (statut != null && (statut.isBlank() || !statut.equalsIgnoreCase("EN_ATTENTE"))) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "Le statut doit etre EN_ATTENTE"))
+                    .build();
+        }
+
+        if (consultationId != null && consultationId <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "consultationId doit etre un entier positif"))
+                    .build();
+
+        }
+
         try {
             em.getTransaction().begin();
             List<DemandeResponse> demades = service.findPendingForSpecialiste();
+            if (consultationId != null) {
+                demades = service.findByConsultation(consultationId);
+            } else {
+                demades = service.findPendingForSpecialiste();
+            }
+
+            if (demades.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(Map.of(
+                                "error",
+                                "Aucune demande trouvée"))
+                        .build();
+            }
+
             em.getTransaction().commit();
             return Response.ok(demades).build();
         } catch (EntityNotFoundException e) {
