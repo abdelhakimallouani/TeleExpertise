@@ -13,8 +13,9 @@ public class DemandeExpertiseRepository {
     public DemandeExpertiseRepository(EntityManager entityManager) {
         this.em = entityManager;
     }
-    public void  save(DemandeExpertise demmande){
-        
+
+    public void save(DemandeExpertise demmande) {
+
         em.persist(demmande);
 
     }
@@ -25,5 +26,12 @@ public class DemandeExpertiseRepository {
                 .getResultList();
     }
 
+    public List<DemandeExpertise> findByConsultation(Long consultationId) {
+        return em
+                .createQuery("SELECT d FROM DemandeExpertise d" + " WHERE d.consultationId= :consultationId",
+                        DemandeExpertise.class)
+                .setParameter("consultationId", consultationId)
+                .getResultList();
+    }
 
 }
