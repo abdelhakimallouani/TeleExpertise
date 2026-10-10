@@ -2,6 +2,8 @@ package ma.clinique.teleexpertise.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 
 import ma.clinique.teleexpertise.entity.DemandeExpertise;
 import ma.clinique.teleexpertise.entity.Specialiste;
@@ -10,24 +12,26 @@ import ma.clinique.teleexpertise.enums.Specialite;
 import ma.clinique.teleexpertise.enums.StatutDemande;
 import ma.clinique.teleexpertise.repository.DemandeExpertiseRepository;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
+import ma.clinique.teleexpertise.dto.DemandeResponse;
+import jakarta.ws.rs.NotFoundException;
 
 public class DemandeExpertiseService {
-   private final DemandeExpertiseRepository demandeExpertiseRepository;
-private final SpecialisteRepository specialisteRepository;
+    private final DemandeExpertiseRepository demandeExpertiseRepository;
+    private final SpecialisteRepository specialisteRepository;
 
-public DemandeExpertiseService(
-        DemandeExpertiseRepository demandeExpertiseRepository,
-        SpecialisteRepository specialisteRepository) {
-    this.demandeExpertiseRepository = demandeExpertiseRepository;
-    this.specialisteRepository = specialisteRepository;
-}
+    public DemandeExpertiseService(
+            DemandeExpertiseRepository demandeExpertiseRepository,
+            SpecialisteRepository specialisteRepository) {
+        this.demandeExpertiseRepository = demandeExpertiseRepository;
+        this.specialisteRepository = specialisteRepository;
+    }
 
     public DemandeExpertise CreateDemande(Priorite priorite,
-            Long specialite_id, Long consultation_id , String question)  {
+            Long specialite_id, Long consultation_id, String question) {
 
         Specialiste specialiste = specialisteRepository.findById(specialite_id);
         if (specialiste == null) {
-            throw new jakarta.ws.rs.NotFoundException("Specialiste introuvable");
+            throw new NotFoundException("Specialiste introuvable");
         }
         DemandeExpertise demandeExpertise = new DemandeExpertise();
         demandeExpertise.setPriorite(priorite);
@@ -39,6 +43,28 @@ public DemandeExpertiseService(
 
         demandeExpertiseRepository.save(demandeExpertise);
         return demandeExpertise;
+    }
+
+    public List<DemandeResponse> findPendingForSpecialiste() {
+        List<DemandeExpertise> demandes = demandeExpertiseRepository.findByStatut(
+                StatutDemande.EN_ATTENTE);
+
+        return demandes.stream()
+                .sorted(Comparator.comparingInt(d -> {
+                    if (d.getPriorite() == Priorite.URGENTE)
+                        return 0;
+                    if (d.getPriorite() == Priorite.NORMALE)
+                        return 1;
+                    return 2;
+                }))
+                .map(d -> new DemandeResponse(
+                        d.getId(),
+                        d.getPriorite(),
+                        d.getStatut(),
+                        d.getQuestion(),
+                        d.getSpecialiste().getId(),
+                        d.getConsultationId()))
+                .toList();
     }
 
 }
