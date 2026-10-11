@@ -45,6 +45,25 @@ public class DemandeExpertiseService {
         return demandeExpertise;
     }
 
+    public DemandeExpertise Reply(Long id,
+            String emailSpecialiste,
+            String avis,
+            String recommandations) {
+
+        DemandeExpertise demande = demandeExpertiseRepository.findById(id);
+        if (demande == null) {
+            throw new jakarta.persistence.EntityExistsException("demande  introuvable");
+
+        }
+
+        String emailCheck = demande.getSpecialiste().getUtilisateur().getEmail();
+        if (emailCheck == null || !emailCheck.equalsIgnoreCase(emailSpecialiste)) {
+            throw new SecurityException("vous ne peuvez pas repondre a cette demande ");
+        }
+        demande.setAvis(avis);
+        demande.setRecommandations(recommandations);
+        demande.setStatut(StatutDemande.TERMINEE);
+        return demande;
     public List<DemandeResponse> findPendingForSpecialiste(String email) {
         List<DemandeExpertise> demandes = demandeExpertiseRepository.findByStatut(email,
                 StatutDemande.EN_ATTENTE);
