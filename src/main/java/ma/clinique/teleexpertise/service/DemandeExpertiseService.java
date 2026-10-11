@@ -45,8 +45,8 @@ public class DemandeExpertiseService {
         return demandeExpertise;
     }
 
-    public List<DemandeResponse> findPendingForSpecialiste() {
-        List<DemandeExpertise> demandes = demandeExpertiseRepository.findByStatut(
+    public List<DemandeResponse> findPendingForSpecialiste(String email) {
+        List<DemandeExpertise> demandes = demandeExpertiseRepository.findByStatut(email,
                 StatutDemande.EN_ATTENTE);
 
         return demandes.stream()
