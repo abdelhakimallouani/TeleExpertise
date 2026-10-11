@@ -29,6 +29,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import ma.clinique.teleexpertise.dto.ReplyRequest;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.BadRequestException;
 
 @Path("/demandes")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -42,22 +43,29 @@ public class DemandeExpertiseResource {
     // private UserSecurityContext securityContext;
 
     @POST
+    @RolesAllowed({ "MEDECIN" })
     public Response create(CreerDemandeRequest req) {
         if (req == null || req.priorite() == null
                 || req.specialisteId() == null || req.specialisteId() <= 0
                 || req.consultationId() == null || req.consultationId() <= 0
                 || req.question() == null || req.question().isBlank()
                 || req.question().length() > 255) {
-            throw new jakarta.ws.rs.BadRequestException("Champs obligatoires invalides (question: 1 a 255 caracteres)");
+            throw new BadRequestException("Champs obligatoires invalides (question: 1 a 255 caracteres)");
         }
         EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
-            Number count = (Number) em.createNativeQuery(
-                    "SELECT COUNT(*) FROM consultation WHERE id = :id")
-                    .setParameter("id", req.consultationId()).getSingleResult();
-            if (count.longValue() == 0) {
-                throw new NotFoundException("Consultation introuvable");
+            if (!securityContext.isUserInRole("MEDECIN")) {
+                String email = securityContext.getUserPrincipal().getName();
+                if (email == null || email.isBlank()) {
+                    return Response.status(Response.Status.UNAUTHORIZED)
+                            .entity(Map.of("error", "Utilisateur non authentifie"))
+                            .build();
+
+                }
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity(Map.of("error", "doit etre un medecin pour creer une demande"))
+                        .build();
             }
             DemandeExpertiseService demandeExpertiseService = new DemandeExpertiseService(
                     new DemandeExpertiseRepository(em), new SpecialisteRepository(em));
