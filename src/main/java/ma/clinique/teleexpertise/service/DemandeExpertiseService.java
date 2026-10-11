@@ -14,6 +14,7 @@ import ma.clinique.teleexpertise.repository.DemandeExpertiseRepository;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
 import ma.clinique.teleexpertise.dto.DemandeResponse;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.persistence.EntityExistsException;
 
 public class DemandeExpertiseService {
     private final DemandeExpertiseRepository demandeExpertiseRepository;
@@ -52,7 +53,7 @@ public class DemandeExpertiseService {
 
         DemandeExpertise demande = demandeExpertiseRepository.findById(id);
         if (demande == null) {
-            throw new jakarta.persistence.EntityExistsException("demande  introuvable");
+            throw new EntityExistsException("demande  introuvable");
 
         }
 
@@ -64,6 +65,8 @@ public class DemandeExpertiseService {
         demande.setRecommandations(recommandations);
         demande.setStatut(StatutDemande.TERMINEE);
         return demande;
+    }
+
     public List<DemandeResponse> findPendingForSpecialiste(String email) {
         List<DemandeExpertise> demandes = demandeExpertiseRepository.findByStatut(email,
                 StatutDemande.EN_ATTENTE);

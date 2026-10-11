@@ -88,18 +88,17 @@ public class DemandeExpertiseResource {
 
     @PUT
     @Path("/{id}/reponse")
+    @RolesAllowed({ "SPECIALISTE" })
     public Response reply(
             @PathParam("id") Long id,
-            @HeaderParam("X-Test-Email") String email,
             ReplyRequest request) {
 
-        if (request == null || email == null || email.isBlank()) {
+        if (id == null || id <= 0) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(java.util.Map.of(
-                            "error", "JSON et X-Test-Email obligatoires"))
+                    .entity(Map.of("error", "ID de demande invalide"))
                     .build();
         }
-
+        String email = securityContext.getUserPrincipal().getName();
         EntityManager em = JPAUtil.getEntityManager();
 
         try {
@@ -119,36 +118,28 @@ public class DemandeExpertiseResource {
 
             return Response.ok(java.util.Map.of(
                     "id", demande.getId(),
-                    "statut", demande.getStatut().name()))
+                    "statut", demande.getStatut().name(),
+                    "avis", demande.getAvis(),
+                    "recommandations", demande.getRecommandations()
+                ))
                     .build();
 
-        } catch (jakarta.persistence.EntityNotFoundException e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
+        } catch (NotFoundException e) {
 
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(java.util.Map.of("error", e.getMessage()))
+                    .entity(Map.of("error", e.getMessage()))
                     .build();
 
         } catch (SecurityException e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-
             return Response.status(Response.Status.FORBIDDEN)
-                    .entity(java.util.Map.of("error", e.getMessage()))
+                    .entity(Map.of("error", e.getMessage()))
                     .build();
-
-        } catch (RuntimeException e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            throw e;
 
         } finally {
             em.close();
         }
+    }
+
     @GET
     @RolesAllowed({ "SPECIALISTE", "MEDECIN" })
     public Response getMesDemandes(@QueryParam("statut") String statut,
