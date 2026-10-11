@@ -7,6 +7,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -24,6 +25,9 @@ import ma.clinique.teleexpertise.repository.DemandeExpertiseRepository;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
 import ma.clinique.teleexpertise.security.UserSecurityContext;
 import ma.clinique.teleexpertise.service.DemandeExpertiseService;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PathParam;
+import ma.clinique.teleexpertise.dto.ReplyRequest;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.BadRequestException;
 
@@ -80,6 +84,60 @@ public class DemandeExpertiseResource {
             em.close();
         }
 
+    }
+
+    @PUT
+    @Path("/{id}/reponse")
+    @RolesAllowed({ "SPECIALISTE" })
+    public Response reply(
+            @PathParam("id") Long id,
+            ReplyRequest request) {
+
+        if (id == null || id <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "ID de demande invalide"))
+                    .build();
+        }
+        String email = securityContext.getUserPrincipal().getName();
+        EntityManager em = JPAUtil.getEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            DemandeExpertiseService service = new DemandeExpertiseService(
+                    new DemandeExpertiseRepository(em),
+                    new SpecialisteRepository(em));
+
+            DemandeExpertise demande = service.Reply(
+                    id,
+                    email,
+                    request.avis(),
+                    request.recommandations());
+
+            em.getTransaction().commit();
+
+            return Response.ok(java.util.Map.of(
+                    "id", demande.getId(),
+                    "statut", demande.getStatut().name(),
+                    "avis", demande.getAvis(),
+                    "recommandations", demande.getRecommandations()
+                ))
+                    .build();
+
+        } catch (NotFoundException e) {
+
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+
+        } catch (SecurityException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+
+        } finally {
+            em.close();
+        }
     }
 
     @GET

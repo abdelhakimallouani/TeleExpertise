@@ -19,6 +19,9 @@ public class DemandeExpertiseRepository {
         em.persist(demmande);
 
     }
+    public DemandeExpertise findById(Long id){
+        return  em.find(DemandeExpertise.class, id);
+    }
 
     public List<DemandeExpertise> findByStatut(String email, StatutDemande statut) {
         return em.createQuery(
