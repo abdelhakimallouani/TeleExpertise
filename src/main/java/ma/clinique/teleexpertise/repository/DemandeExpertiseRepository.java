@@ -20,9 +20,10 @@ public class DemandeExpertiseRepository {
 
     }
 
-    public List<DemandeExpertise> findByStatut(StatutDemande statut) {
-        return em.createQuery("SELECT d FROM DemandeExpertise d WHERE d.statut = :statut", DemandeExpertise.class)
-                .setParameter("statut", statut)
+    public List<DemandeExpertise> findByStatut(String email, StatutDemande statut) {
+        return em.createQuery(
+                "SELECT d FROM DemandeExpertise d JOIN FETCH d.specialiste s JOIN FETCH s.utilisateur WHERE d.statut = :statut AND s.utilisateur.email = :email",
+                DemandeExpertise.class).setParameter("statut", statut).setParameter("email", email)
                 .getResultList();
     }
 
