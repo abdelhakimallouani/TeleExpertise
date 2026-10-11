@@ -12,8 +12,7 @@ public class UserSecurityContext implements SecurityContext {
 
     public UserSecurityContext(
             Utilisateur utilisateur,
-            SecurityContext originalContext
-    ) {
+            SecurityContext originalContext) {
         this.utilisateur = utilisateur;
         this.originalContext = originalContext;
     }
@@ -38,4 +37,11 @@ public class UserSecurityContext implements SecurityContext {
     public String getAuthenticationScheme() {
         return SecurityContext.BASIC_AUTH;
     }
+
+    // public record UserPrincipal(
+    //         Long id,
+    //         String email,
+    //         String role) {
+    // }
+
 }

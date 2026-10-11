@@ -32,8 +32,7 @@ public class BasicAuthFilter implements ContainerRequestFilter {
                 HttpHeaders.AUTHORIZATION);
 
         if (authorization == null
-                || !authorization.regionMatches(
-                        true, 0, "Basic ", 0, 6)) {
+                || !authorization.startsWith("Basic ")) {
             abortUnauthorized(requestContext);
             return;
         }
@@ -45,15 +44,15 @@ public class BasicAuthFilter implements ContainerRequestFilter {
                     Base64.getDecoder().decode(encoded),
                     StandardCharsets.UTF_8);
 
-            int separator = credentials.indexOf(':');
+            String[] parts = credentials.split(":", 2);
 
-            if (separator <= 0) {
+            if (parts.length != 2) {
                 abortUnauthorized(requestContext);
                 return;
             }
 
-            String email = credentials.substring(0, separator);
-            String password = credentials.substring(separator + 1);
+            String email = parts[0];
+            String password = parts[1];
 
             EntityManager em = JPAUtil.getEntityManager();
 
@@ -94,7 +93,7 @@ public class BasicAuthFilter implements ContainerRequestFilter {
                         .header(
                                 HttpHeaders.WWW_AUTHENTICATE,
                                 "Basic realm=\"TeleExpertise\"")
-                        .entity(Map.of("error" ,"Identifiants invalides ou authentification requise"))
+                        .entity(Map.of("error", "Identifiants invalides ou authentification requise"))
                         .build());
     }
 }
