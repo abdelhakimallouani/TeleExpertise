@@ -2,6 +2,7 @@ package ma.clinique.teleexpertise.resource;
 
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -14,13 +15,15 @@ import ma.clinique.teleexpertise.entity.DemandeExpertise;
 import ma.clinique.teleexpertise.repository.DemandeExpertiseRepository;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
 import ma.clinique.teleexpertise.service.DemandeExpertiseService;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PathParam;
+import ma.clinique.teleexpertise.dto.ReplyRequest;
 
 @Path("/demandes")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 
 public class DemandeExpertiseResource {
-
 
     @POST
     public Response create(CreerDemandeRequest req) {
@@ -57,6 +60,71 @@ public class DemandeExpertiseResource {
             em.close();
         }
 
+    }
+
+    @PUT
+    @Path("/{id}/reponse")
+    public Response reply(
+            @PathParam("id") Long id,
+            @HeaderParam("X-Test-Email") String email,
+            ReplyRequest request) {
+
+        if (request == null || email == null || email.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(java.util.Map.of(
+                            "error", "JSON et X-Test-Email obligatoires"))
+                    .build();
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            DemandeExpertiseService service = new DemandeExpertiseService(
+                    new DemandeExpertiseRepository(em),
+                    new SpecialisteRepository(em));
+
+            DemandeExpertise demande = service.Reply(
+                    id,
+                    email,
+                    request.avis(),
+                    request.recommandations());
+
+            em.getTransaction().commit();
+
+            return Response.ok(java.util.Map.of(
+                    "id", demande.getId(),
+                    "statut", demande.getStatut().name()))
+                    .build();
+
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(java.util.Map.of("error", e.getMessage()))
+                    .build();
+
+        } catch (SecurityException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(java.util.Map.of("error", e.getMessage()))
+                    .build();
+
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+
+        } finally {
+            em.close();
+        }
     }
 
 }

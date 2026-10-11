@@ -15,6 +15,9 @@ public class DemandeExpertiseRepository {
         em.persist(demmande);
 
     }
+    public DemandeExpertise findById(Long id){
+        return  em.find(DemandeExpertise.class, id);
+    }
 
 
 }

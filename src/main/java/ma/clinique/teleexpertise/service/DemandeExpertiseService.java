@@ -12,18 +12,18 @@ import ma.clinique.teleexpertise.repository.DemandeExpertiseRepository;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
 
 public class DemandeExpertiseService {
-   private final DemandeExpertiseRepository demandeExpertiseRepository;
-private final SpecialisteRepository specialisteRepository;
+    private final DemandeExpertiseRepository demandeExpertiseRepository;
+    private final SpecialisteRepository specialisteRepository;
 
-public DemandeExpertiseService(
-        DemandeExpertiseRepository demandeExpertiseRepository,
-        SpecialisteRepository specialisteRepository) {
-    this.demandeExpertiseRepository = demandeExpertiseRepository;
-    this.specialisteRepository = specialisteRepository;
-}
+    public DemandeExpertiseService(
+            DemandeExpertiseRepository demandeExpertiseRepository,
+            SpecialisteRepository specialisteRepository) {
+        this.demandeExpertiseRepository = demandeExpertiseRepository;
+        this.specialisteRepository = specialisteRepository;
+    }
 
     public DemandeExpertise CreateDemande(Priorite priorite,
-            Long specialite_id, Long consultation_id , String question)  {
+            Long specialite_id, Long consultation_id, String question) {
 
         Specialiste specialiste = specialisteRepository.findById(specialite_id);
         if (specialiste == null) {
@@ -39,6 +39,27 @@ public DemandeExpertiseService(
 
         demandeExpertiseRepository.save(demandeExpertise);
         return demandeExpertise;
+    }
+
+    public DemandeExpertise Reply(Long id,
+            String emailSpecialiste,
+            String avis,
+            String recommandations) {
+
+        DemandeExpertise demande = demandeExpertiseRepository.findById(id);
+        if (demande == null) {
+            throw new jakarta.persistence.EntityExistsException("demande  introuvable");
+
+        }
+
+        String emailCheck = demande.getSpecialiste().getUtilisateur().getEmail();
+        if (emailCheck == null || !emailCheck.equalsIgnoreCase(emailSpecialiste)) {
+            throw new SecurityException("vous ne peuvez pas repondre a cette demande ");
+        }
+        demande.setAvis(avis);
+        demande.setRecommandations(recommandations);
+        demande.setStatut(StatutDemande.TERMINEE);
+        return demande;
     }
 
 }
