@@ -16,6 +16,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import ma.clinique.teleexpertise.config.JPAUtil;
+import ma.clinique.teleexpertise.dto.FindBySpecialite;
 import ma.clinique.teleexpertise.entity.Specialiste;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
 import ma.clinique.teleexpertise.service.SpecialisteService;
@@ -48,7 +49,7 @@ public class SpecialisteResource {
         }
         try {
             Specialite specialiteEnum = Specialite.valueOf(specialite.toUpperCase());
-            List<Specialiste> specialistes = specialisteService.findBySpecialite(specialiteEnum);
+            List<FindBySpecialite> specialistes = specialisteService.findBySpecialite(specialiteEnum);
             return Response.ok(specialistes).build();
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)

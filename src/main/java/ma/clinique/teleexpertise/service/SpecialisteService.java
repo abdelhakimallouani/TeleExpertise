@@ -2,6 +2,7 @@ package ma.clinique.teleexpertise.service;
 
 import java.util.List;
 
+import ma.clinique.teleexpertise.dto.FindBySpecialite;
 import ma.clinique.teleexpertise.entity.Specialiste;
 import ma.clinique.teleexpertise.enums.Specialite;
 import ma.clinique.teleexpertise.repository.SpecialisteRepository;
@@ -17,8 +18,14 @@ public class SpecialisteService {
     //     return specialisteRepository.findAll();
     // }
 
-    public List<Specialiste> findBySpecialite(Specialite specialite) {
+    public List<FindBySpecialite> findBySpecialite(Specialite specialite) {
         return specialisteRepository.findAll().stream().filter(s -> s.getSpecialite().equals(specialite))
-                .sorted((s1, s2) -> s1.getTarif().compareTo(s2.getTarif())).toList();
+                .sorted((s1, s2) -> s1.getTarif().compareTo(s2.getTarif()))
+                .map(s -> new FindBySpecialite(
+                        s.getId(),
+                        s.getUtilisateur().getId(),
+                        s.getSpecialite().name(),
+                        s.getTarif()))
+                .toList();
     }
 }
